@@ -1,20 +1,18 @@
 require("dotenv").config();
-const { Client, GatewayIntentBits, userMention } = require("discord.js");
+const { Client, GatewayIntentBits } = require("discord.js");
 
-const { bannedWords } = require("./constants.js");
+const { bannedWords, welcomeMessages } = require("./constants.js");
 
 const client = new Client({
    intents: [
       GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMembers,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
    ],
 });
 
-// Banned words
-client.on("messageCreate", async (message) => {
-   if (message.author.bot) return;
-
+async function isBanned(message) {
    // Convert to lower case
    const messageContent = message.content.toLowerCase();
 
@@ -26,28 +24,22 @@ client.on("messageCreate", async (message) => {
       });
       message.delete().catch(console.error);
    };
-});
+};
 
-// Mentions
-client.on("messageCreate", (message) => {
-   if (message.author.bot) return;
-
+function mentions(message) {
    // Count the mentions
    const mentionCount = message.mentions.users.size + message.mentions.roles.size;
 
    if (mentionCount > 2) {
       message.reply("Too many mentions! 😡😡");
       message.delete().catch(console.error);
-   };
-});
+   };  
+};
 
-// Fast message sending
 const messageRate = new Map();
 const userMessages = new Map();
 
-client.on("messageCreate", async (message) => {
-   if (message.author.bot) return;
-
+async function detectSpam(message) {
    const now = Date.now();
    const userId = message.author.id;
 
@@ -78,18 +70,39 @@ client.on("messageCreate", async (message) => {
    };
 
    messageRate.set(userId, { count: recentMessages.length, lastMessageTime: now });
-});
+};
 
-// Detect if user sends a link
 const linkRegex = /https?:\/\/[^\s]+/;
 
-client.on("messageCreate", async (message) => {
-   if (message.author.bot) return;
-
+async function isLink(message) {
    if (linkRegex.test(message.content)) {
       await message.reply("Links are not allowed in this channel");
       message.delete().catch(console.error);
    };
-})
+};
+
+client.on("messageCreate", (message) => {
+   if (message.author.bot) return;
+
+   isBanned(message);
+   mentions(message);
+   detectSpam(message);
+   isLink(message);
+});
+
+client.on("guildMemberAdd", async (member) => {
+   console.log(`${member.user.tag} has joined the server!`);
+
+   // find the welcome channel
+   const welcomeChannel = member.guild.channels.cache.find(channel => channel.name === "welcome");
+
+   if (welcomeChannel) {
+      const randomWelcomeMessageIndex = Math.floor(Math.random() * welcomeMessages.length);
+
+      welcomeChannel.send(
+         `Welcome to the server ${member.user}. ${welcomeMessages[randomWelcomeMessageIndex]}`,
+      );
+   };
+});
 
 client.login(process.env.DISCORD_TOKEN);
