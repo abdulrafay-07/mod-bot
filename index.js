@@ -1,7 +1,7 @@
 require("dotenv").config();
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 
-const { bannedWords, welcomeMessages, backgroundImage } = require("./constants.js");
+const { bannedWords, welcomeMessages, backgroundImage, roleId } = require("./constants.js");
 
 const client = new Client({
    intents: [
@@ -9,6 +9,7 @@ const client = new Client({
       GatewayIntentBits.GuildMembers,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
+      GatewayIntentBits.GuildMessageReactions,
    ],
 });
 
@@ -112,6 +113,30 @@ client.on("guildMemberAdd", async (member) => {
       await welcomeChannel.send({
          embeds: [welcomeEmbed],
       });
+   };
+});
+
+client.once("ready", async () => {
+   const getRoleChannel = client.channels.cache.find(channel => channel.name === "get-role");
+
+   if (getRoleChannel) {
+      const sendMessage = await getRoleChannel.send("React 🗿 to get the aura role");
+
+      await sendMessage.react("🗿");
+   }
+});
+
+client.on("messageReactionAdd", async (reaction, user) => {
+   if (user.bot) return;
+
+   const getRoleChannel = client.channels.cache.find(channel => channel.name === "get-role");
+
+   if (getRoleChannel && reaction.message.author.bot && reaction.emoji.name == "🗿") {
+      const member = await reaction.message.guild.members.fetch(user.id);
+
+      await member.roles.add(roleId);
+      
+      console.log(`${user.tag} has been given the role!`);
    };
 });
 

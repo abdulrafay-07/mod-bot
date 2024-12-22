@@ -1,5 +1,6 @@
 const backgroundImage = "https://e0.pxfuel.com/wallpapers/640/869/desktop-wallpaper-i-thought-the-discord-bot-authentication-page-would-make-a-cool-for-your-mobile-tablet-explore-discord-background-discord-thumbnail.jpg"
 
+const roleId = "1320396070085197947";
 const bannedWords = ["twat", "ass", "fuck"];
 
 const welcomeMessages = [
@@ -15,4 +16,4 @@ const welcomeMessages = [
    "Let's create magic together! 🪄"
 ];
 
-module.exports = { bannedWords, welcomeMessages, backgroundImage };
+module.exports = { bannedWords, welcomeMessages, backgroundImage, roleId };
