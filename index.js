@@ -1,7 +1,7 @@
 require("dotenv").config();
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 
-const { bannedWords, welcomeMessages } = require("./constants.js");
+const { bannedWords, welcomeMessages, backgroundImage } = require("./constants.js");
 
 const client = new Client({
    intents: [
@@ -99,9 +99,19 @@ client.on("guildMemberAdd", async (member) => {
    if (welcomeChannel) {
       const randomWelcomeMessageIndex = Math.floor(Math.random() * welcomeMessages.length);
 
-      welcomeChannel.send(
-         `Welcome to the server ${member.user}. ${welcomeMessages[randomWelcomeMessageIndex]}`,
-      );
+      const welcomeEmbed = new EmbedBuilder()
+         .setColor("Red")
+         .setTitle("Welcome to the Server!")
+         .setDescription(
+            `${member.user} ${welcomeMessages[randomWelcomeMessageIndex]}`
+         )
+         .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+         .setImage(backgroundImage)
+         .setFooter({ text: "We're glad to have you here!" });
+
+      await welcomeChannel.send({
+         embeds: [welcomeEmbed],
+      });
    };
 });
 
